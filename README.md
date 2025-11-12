@@ -89,7 +89,5 @@ This application can be deployed **100% free** using:
 - **Frontend**: Vercel (unlimited deployments, automatic HTTPS)
 - **Backend**: Render (750 hrs/month free tier)
 
-📖 **[View Complete Deployment Guide](DEPLOYMENT.md)** - Step-by-step instructions for deploying to production.
-
 ---
 
