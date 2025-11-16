@@ -83,11 +83,5 @@ npm run dev
 
 The API will be available at `http://localhost:8000` and the frontend at `http://localhost:5173`.
 
-## Deployment
-
-This application can be deployed **100% free** using:
-- **Frontend**: Vercel (unlimited deployments, automatic HTTPS)
-- **Backend**: Render (750 hrs/month free tier)
-
 ---
 
