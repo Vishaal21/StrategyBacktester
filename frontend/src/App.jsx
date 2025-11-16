@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const HEALTH_CHECK_INTERVAL = 50000 // 50 seconds in milliseconds
 
 function App() {
   const [datasets, setDatasets] = useState([])
@@ -9,6 +10,7 @@ function App() {
   const [backtestResult, setBacktestResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [backendStatus, setBackendStatus] = useState('checking') // 'healthy', 'unhealthy', 'checking'
 
   // Metadata state
   const [validationMetadata, setValidationMetadata] = useState(null)
@@ -35,6 +37,35 @@ function App() {
     start_date: '',
     end_date: ''
   })
+
+  // Health check function to keep backend alive
+  const checkBackendHealth = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/health`, { timeout: 10000 })
+      console.log('✅ Backend health check:', response.data)
+      setBackendStatus('healthy')
+    } catch (err) {
+      console.error('❌ Backend health check failed:', err.message)
+      setBackendStatus('unhealthy')
+    }
+  }
+
+  // Health check interval - runs every 50 seconds to keep Render backend alive
+  useEffect(() => {
+    // Check immediately on mount
+    checkBackendHealth()
+
+    // Set up interval for periodic checks
+    const intervalId = setInterval(() => {
+      checkBackendHealth()
+    }, HEALTH_CHECK_INTERVAL)
+
+    // Cleanup interval on component unmount
+    return () => {
+      clearInterval(intervalId)
+      console.log('🛑 Health check interval cleared')
+    }
+  }, [])
 
   // Fetch datasets on component mount
   useEffect(() => {
@@ -176,6 +207,30 @@ function App() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h1>Options Strategy Backtester</h1>
+
+      {/* Backend Status Indicator */}
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '8px 16px',
+        marginBottom: '20px',
+        borderRadius: '20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        backgroundColor: backendStatus === 'healthy' ? '#f0fdf4' : backendStatus === 'unhealthy' ? '#fef2f2' : '#f3f4f6',
+        border: `1px solid ${backendStatus === 'healthy' ? '#22c55e' : backendStatus === 'unhealthy' ? '#ef4444' : '#d1d5db'}`,
+        color: backendStatus === 'healthy' ? '#16a34a' : backendStatus === 'unhealthy' ? '#dc2626' : '#6b7280'
+      }}>
+        <span style={{
+          display: 'inline-block',
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          marginRight: '8px',
+          backgroundColor: backendStatus === 'healthy' ? '#22c55e' : backendStatus === 'unhealthy' ? '#ef4444' : '#9ca3af'
+        }}></span>
+        {backendStatus === 'healthy' ? 'Backend Connected' : backendStatus === 'unhealthy' ? 'Backend Disconnected' : 'Checking Backend...'}
+      </div>
 
       {error && <div style={{ color: 'red', padding: '10px', backgroundColor: '#ffe6e6', marginBottom: '20px' }}>{error}</div>}
       {loading && <div style={{ color: 'blue', marginBottom: '20px' }}>Loading...</div>}
